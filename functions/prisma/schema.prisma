@@ -1,0 +1,84 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model Event {
+  id                Int        @id @default(autoincrement())
+  email             String
+  parentFirstName   String
+  parentLastName    String
+  phoneNumber       Int
+  date              DateTime
+  time              DateTime
+  addressId         Int @unique
+  address           Address    @relation(fields: [addressId], references: [id])
+  indoors           Boolean
+  packageId         Int
+  package           Package    @relation(fields: [packageId], references: [id])
+  participants      Int
+  minParticipantAge Int
+  maxParticipantAge Int
+  birthdayChildName String
+  birthdayChildAge  Int
+  firstInteraction  Boolean
+  notes             String?
+  couponCode        String?
+  referralCode      String?
+  howDidYouFindUs   String?
+  charactersAtEvent CharactersAtEvent[]
+  activitiesForEvent ActivitiesForEvent[]
+}
+
+model Address {
+  id       Int    @id @default(autoincrement())
+  lineOne  String
+  lineTwo  String?
+  city     String
+  state    String
+  event    Event?
+}
+
+model Character {
+  id                 Int                @id @default(autoincrement())
+  name               String
+  charactersAtEvent  CharactersAtEvent[]
+}
+
+model Package {
+  id     Int     @id @default(autoincrement())
+  name   String
+  events Event[]
+}
+
+model Activity {
+  id                   Int                @id @default(autoincrement())
+  name                 String
+  activitiesForEvent   ActivitiesForEvent[]
+}
+
+model CharactersAtEvent {
+  id          Int       @id @default(autoincrement())
+  characterId Int
+  eventId     Int
+  character   Character  @relation(fields: [characterId], references: [id])
+  event       Event      @relation(fields: [eventId], references: [id])
+}
+
+model ActivitiesForEvent {
+  id         Int       @id @default(autoincrement())
+  activityId Int
+  eventId    Int
+  activity   Activity  @relation(fields: [activityId], references: [id])
+  event      Event     @relation(fields: [eventId], references: [id])
+}

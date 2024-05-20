@@ -7,13 +7,11 @@
  * See a full list of supported triggers at https://firebase.google.com/docs/functions
  */
 
-import {onRequest} from "firebase-functions/v2/https";
-import * as logger from "firebase-functions/logger";
+import { onRequest } from "firebase-functions/v2/https";
+import express from "express";
 
-// Start writing functions
-// https://firebase.google.com/docs/functions/typescript
+const app = express();
 
-// export const helloWorld = onRequest((request, response) => {
-//   logger.info("Hello logs!", {structuredData: true});
-//   response.send("Hello from Firebase!");
-// });
+app.use(express.json());
+
+exports.bookingForm = onRequest(app);
