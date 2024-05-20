@@ -4,11 +4,13 @@ import { bookingFormSchema } from "./types";
 import { ZodError } from "zod";
 import { validateRequestBody } from "zod-express-middleware";
 import { PrismaClient } from "@prisma/client";
+import cors from "cors";
 
 const prisma = new PrismaClient();
 const app = express();
 
 app.use(express.json());
+app.use(cors());
 
 const errorHandlingMiddleware = (
   err: Error,
@@ -37,7 +39,7 @@ const parseDateTimeFields = (
   next();
 };
 
-app.get("/", (_req, res) => {
+app.get("/", cors(), (_req, res) => {
   return res.send("<h1>Hello world! You're awesome</h1>");
 });
 
@@ -194,4 +196,4 @@ app.post(
 
 app.use(errorHandlingMiddleware);
 
-exports.bookingForm = onRequest(app);
+export const bookingForm = onRequest(app);
