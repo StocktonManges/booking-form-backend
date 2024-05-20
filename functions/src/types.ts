@@ -1,7 +1,11 @@
 import { z } from "zod";
 
+// const wish = z.literal("wish");
+// const dream = z.literal("dream");
+// const fantasy = z.literal("fantasy");
+
 export const bookingFormSchema = z.object({
-  id: z.number(),
+  id: z.number().optional(),
   email: z.string(),
   parentFirstName: z.string(),
   parentLastName: z.string(),
@@ -14,7 +18,7 @@ export const bookingFormSchema = z.object({
     state: z.string(),
   }),
   indoors: z.boolean(),
-  packageId: z.number(),
+  packageName: z.string(),
   participants: z.number(),
   minParticipantAge: z.number(),
   maxParticipantAge: z.number(),
