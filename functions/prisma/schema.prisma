@@ -19,8 +19,7 @@ model Event {
   parentFirstName   String
   parentLastName    String
   phoneNumber       Int
-  date              DateTime
-  time              DateTime
+  dateTime          DateTime
   addressId         Int @unique
   address           Address    @relation(fields: [addressId], references: [id])
   indoors           Boolean
@@ -38,6 +37,7 @@ model Event {
   howDidYouFindUs   String?
   charactersAtEvent CharactersAtEvent[]
   activitiesForEvent ActivitiesForEvent[]
+  status            String    @default("requested")
 }
 
 model Address {
