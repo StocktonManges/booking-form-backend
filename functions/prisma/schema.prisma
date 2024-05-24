@@ -16,9 +16,8 @@ datasource db {
 model Event {
   id                Int        @id @default(autoincrement())
   email             String
-  parentFirstName   String
-  parentLastName    String
-  phoneNumber       Int
+  parentName        String
+  phoneNumber       String
   dateTime          DateTime
   addressId         Int @unique
   address           Address    @relation(fields: [addressId], references: [id])
@@ -43,8 +42,7 @@ model Event {
 
 model Address {
   id       Int    @id @default(autoincrement())
-  lineOne  String
-  lineTwo  String?
+  street   String
   city     String
   state    String
   event    Event?
