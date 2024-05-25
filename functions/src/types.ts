@@ -11,7 +11,7 @@ export const bookingFormSchema = z.object({
     city: z.string(),
     state: z.string(),
   }),
-  indoors: z.boolean(),
+  outdoors: z.boolean(),
   packageName: z.string(),
   participants: z.number(),
   minParticipantAge: z.number(),
@@ -34,3 +34,10 @@ export const characterSchema = z.object({
 });
 
 export const characterArraySchema = z.array(characterSchema);
+
+export const activitySchema = z.object({
+  id: z.number().optional(),
+  name: z.string(),
+});
+
+export const activityArraySchema = z.array(activitySchema);

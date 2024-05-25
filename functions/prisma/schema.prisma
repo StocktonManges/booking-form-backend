@@ -19,9 +19,9 @@ model Event {
   parentName        String
   phoneNumber       String
   dateTime          DateTime
-  addressId         Int @unique
+  addressId         Int
   address           Address    @relation(fields: [addressId], references: [id])
-  indoors           Boolean
+  outdoors          Boolean
   packageId         Int
   package           Package    @relation(fields: [packageId], references: [id])
   participants      Int
@@ -45,7 +45,7 @@ model Address {
   street   String
   city     String
   state    String
-  event    Event?
+  events   Event[]
 }
 
 model Character {
@@ -62,7 +62,7 @@ model Package {
 
 model Activity {
   id                   Int                @id @default(autoincrement())
-  name                 String
+  name                 String             @unique
   activitiesForEvent   ActivitiesForEvent[]
 }
 
