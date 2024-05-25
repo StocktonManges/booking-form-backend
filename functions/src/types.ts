@@ -27,3 +27,10 @@ export const bookingFormSchema = z.object({
   activitiesForEvent: z.array(z.string()),
   status: z.number(),
 });
+
+export const characterSchema = z.object({
+  id: z.number().optional(),
+  name: z.string(),
+});
+
+export const characterArraySchema = z.array(characterSchema);

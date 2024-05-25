@@ -1,6 +1,6 @@
 import { onRequest } from "firebase-functions/v2/https";
 import express, { Request, Response, NextFunction } from "express";
-import { bookingFormSchema } from "./types";
+import { bookingFormSchema, characterArraySchema } from "./types";
 import { ZodError } from "zod";
 import { validateRequestBody } from "zod-express-middleware";
 import { PrismaClient } from "@prisma/client";
@@ -124,6 +124,54 @@ app.get("/character", async (_req, res) => {
   const allCharacters = await prisma.character.findMany();
   return res.status(200).json(allCharacters);
 });
+
+app.post(
+  "/character",
+  validateRequestBody(characterArraySchema),
+  async (req, res) => {
+    try {
+      const createdCharacters = await prisma.character.createMany({
+        data: req.body,
+      });
+      return res.status(200).json({
+        message: "Created characters.",
+        characters: createdCharacters,
+      });
+    } catch (error) {
+      return res.status(400).json({
+        message: "Error creating characters.",
+        error: error instanceof Error ? error.message : error,
+      });
+    }
+  }
+);
+
+app.delete(
+  "/character",
+  validateRequestBody(characterArraySchema),
+  async (req, res) => {
+    const names = req.body.map((character) => character.name);
+    try {
+      const deletedCharacters = await prisma.character.deleteMany({
+        where: {
+          name: {
+            in: names,
+          },
+        },
+      });
+
+      return res.status(200).json({
+        message: "Deleted characters.",
+        count: deletedCharacters.count,
+      });
+    } catch (error) {
+      return res.status(400).json({
+        message: "Error deleting characters.",
+        error: error instanceof Error ? error.message : error,
+      });
+    }
+  }
+);
 
 app.get("/charactersAtEvent", cors(corsOptions), async (_req, res) => {
   const allCharactersAtEvent = await prisma.charactersAtEvent.findMany();
