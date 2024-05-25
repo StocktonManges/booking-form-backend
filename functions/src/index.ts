@@ -4,7 +4,7 @@ import { bookingFormSchema, characterArraySchema } from "./types";
 import { ZodError } from "zod";
 import { validateRequestBody } from "zod-express-middleware";
 import { PrismaClient } from "@prisma/client";
-import cors, { CorsOptions } from "cors";
+import cors from "cors";
 
 const rootReturnValue = `<h1>Welcome to the Event Pro API!</h1>
 <div>Checkout all of our public endpoints:</div>
@@ -49,17 +49,17 @@ const rootReturnValue = `<h1>Welcome to the Event Pro API!</h1>
 </li>
 </ol>`;
 
-const allowedOrigin = "http://localhost:5173";
-const corsOptions: CorsOptions = {
-  origin: (origin, callback) => {
-    if (!origin || origin.startsWith(allowedOrigin)) {
-      callback(null, true);
-    } else {
-      callback(new Error("Not allowed by CORS"));
-    }
-  },
-  optionsSuccessStatus: 200,
-};
+// const allowedOrigin = "http://localhost:5173";
+// const corsOptions: CorsOptions = {
+//   origin: (origin, callback) => {
+//     if (!origin || origin.startsWith(allowedOrigin)) {
+//       callback(null, true);
+//     } else {
+//       callback(new Error("Not allowed by CORS"));
+//     }
+//   },
+//   optionsSuccessStatus: 200,
+// };
 
 const prisma = new PrismaClient();
 const app = express();
@@ -99,7 +99,7 @@ app.get("/", (_req, res) => {
 });
 
 // NEEDS AUTHENTICATION
-app.get("/event", cors(corsOptions), async (_req, res) => {
+app.get("/event", async (_req, res) => {
   const allEvents = await prisma.event.findMany();
   return res.status(200).json(allEvents);
 });
@@ -109,13 +109,13 @@ app.get("/activity", async (_req, res) => {
   return res.status(200).json(allActivities);
 });
 
-app.get("/activitiesForEvent", cors(corsOptions), async (_req, res) => {
+app.get("/activitiesForEvent", async (_req, res) => {
   const allActivitiesForEvent = await prisma.activitiesForEvent.findMany();
   return res.status(200).json(allActivitiesForEvent);
 });
 
 // NEEDS AUTHENTICATION
-app.get("/address", cors(corsOptions), async (_req, res) => {
+app.get("/address", async (_req, res) => {
   const allAddresses = await prisma.address.findMany();
   return res.status(200).json(allAddresses);
 });
@@ -173,7 +173,7 @@ app.delete(
   }
 );
 
-app.get("/charactersAtEvent", cors(corsOptions), async (_req, res) => {
+app.get("/charactersAtEvent", async (_req, res) => {
   const allCharactersAtEvent = await prisma.charactersAtEvent.findMany();
   return res.status(200).json(allCharactersAtEvent);
 });
@@ -183,7 +183,7 @@ app.get("/package", async (_req, res) => {
   return res.status(200).json(allPackages);
 });
 
-app.get("/status", cors(corsOptions), async (_req, res) => {
+app.get("/status", async (_req, res) => {
   const allStatuses = await prisma.status.findMany();
   return res.status(200).json(allStatuses);
 });
