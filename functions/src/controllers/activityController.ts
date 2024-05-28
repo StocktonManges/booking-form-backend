@@ -1,7 +1,11 @@
 import { PrismaClient } from "@prisma/client";
 import { Router } from "express";
-import { validateRequestBody } from "zod-express-middleware";
-import { activityArraySchema } from "../types";
+import {
+  validateRequestBody,
+  validateRequestParams,
+} from "zod-express-middleware";
+import { activateOrDeactivateParamSchema, activityArraySchema } from "../types";
+import { z } from "zod";
 
 export const activityController = Router();
 const prisma = new PrismaClient();
@@ -56,5 +60,35 @@ activityController.delete(
         error: error instanceof Error ? error.message : error,
       });
     }
+  }
+);
+
+// Batch activate or deactivate activities
+activityController.patch(
+  "/:activateOrDeactivate",
+  validateRequestBody(
+    z.array(
+      z.string({
+        errorMap: () => ({ message: "Must be an array of activity names." }),
+      })
+    )
+  ),
+  validateRequestParams(activateOrDeactivateParamSchema),
+  async (req, res) => {
+    const activateOrDeactivate = req.params.activateOrDeactivate === "activate";
+
+    const updatedActivities = await prisma.activity.updateMany({
+      where: {
+        name: {
+          in: req.body,
+        },
+      },
+      data: { isActive: activateOrDeactivate },
+    });
+
+    return res.status(200).json({
+      message: "Updated activities.",
+      characters: updatedActivities,
+    });
   }
 );

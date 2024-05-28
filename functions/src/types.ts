@@ -29,15 +29,28 @@ export const bookingFormSchema = z.object({
 });
 
 export const characterSchema = z.object({
-  id: z.number().optional(),
+  id: z.number(),
   name: z.string(),
+  isActive: z.boolean(),
 });
 
 export const characterArraySchema = z.array(characterSchema);
 
 export const activitySchema = z.object({
-  id: z.number().optional(),
+  id: z.number(),
   name: z.string(),
+  isActive: z.boolean(),
 });
 
 export const activityArraySchema = z.array(activitySchema);
+
+export const activateOrDeactivateParamSchema = z.object({
+  activateOrDeactivate: z.union(
+    [z.literal("activate"), z.literal("deactivate")],
+    {
+      errorMap: () => ({
+        message: "The URL parameter must be 'activate' or 'deactivate'.",
+      }),
+    }
+  ),
+});

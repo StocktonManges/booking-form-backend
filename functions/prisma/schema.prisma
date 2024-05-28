@@ -33,7 +33,7 @@ model Event {
   notes             String?
   couponCode        String?
   referralCode      String?
-  howDidYouFindUs   String?
+  howDidYouFindUs   String
   charactersAtEvent CharactersAtEvent[]
   activitiesForEvent ActivitiesForEvent[]
   statusId          Int
@@ -51,6 +51,7 @@ model Address {
 model Character {
   id                 Int                @id @default(autoincrement())
   name               String             @unique()
+  isActive           Boolean            @default(true)
   charactersAtEvent  CharactersAtEvent[]
 }
 
@@ -63,6 +64,7 @@ model Package {
 model Activity {
   id                   Int                @id @default(autoincrement())
   name                 String             @unique
+  isActive             Boolean            @default(true)
   activitiesForEvent   ActivitiesForEvent[]
 }
 
