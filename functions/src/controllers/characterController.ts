@@ -81,7 +81,7 @@ characterController.delete(
   }
 );
 
-// Batch activate or deactivate characters
+// Batch activate or deactivate characters.
 characterController.patch(
   "/:activateOrDeactivate",
   validateRequestBody(
@@ -95,6 +95,38 @@ characterController.patch(
   async (req, res) => {
     const activateOrDeactivate = req.params.activateOrDeactivate === "activate";
 
+    // Validate the spelling of all names.
+    const allCharacterNames = await prisma.character
+      .findMany({
+        where: {
+          name: {
+            in: req.body,
+          },
+        },
+        select: {
+          name: true,
+        },
+      })
+      .then((chars) => chars.map((char) => char.name));
+
+    const allEntriesValidArr = req.body.map((charName) => {
+      if (!allCharacterNames.includes(charName)) {
+        return charName;
+      }
+      return true;
+    });
+
+    if (!allEntriesValidArr.every((elm) => elm === true)) {
+      const invalidEntries = allEntriesValidArr.filter(
+        (elm) => typeof elm === "string"
+      );
+      return res.status(400).json({
+        message: "No updates performed. One or more entries were invalid.",
+        invalidEntries,
+      });
+    }
+
+    // If all names are valid, update all characters.
     const updatedCharacters = await prisma.character.updateMany({
       where: {
         name: {
@@ -104,9 +136,16 @@ characterController.patch(
       data: { isActive: activateOrDeactivate },
     });
 
+    if (updatedCharacters.count === 0) {
+      return res
+        .status(400)
+        .json({ message: "No updates performed. Invalid character names." });
+    }
+
     return res.status(200).json({
-      message: "Updated characters.",
-      characters: updatedCharacters,
+      message: `Successfully ${req.params.activateOrDeactivate}d characters.`,
+      count: updatedCharacters.count,
+      characters: req.body,
     });
   }
 );

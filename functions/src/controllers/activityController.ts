@@ -63,7 +63,7 @@ activityController.delete(
   }
 );
 
-// Batch activate or deactivate activities
+// Batch activate or deactivate activities.
 activityController.patch(
   "/:activateOrDeactivate",
   validateRequestBody(
@@ -77,6 +77,38 @@ activityController.patch(
   async (req, res) => {
     const activateOrDeactivate = req.params.activateOrDeactivate === "activate";
 
+    // Validate the spelling of all names.
+    const allActivityNames = await prisma.activity
+      .findMany({
+        where: {
+          name: {
+            in: req.body,
+          },
+        },
+        select: {
+          name: true,
+        },
+      })
+      .then((activities) => activities.map((activity) => activity.name));
+
+    const allEntriesValidArr = req.body.map((activityName) => {
+      if (!allActivityNames.includes(activityName)) {
+        return activityName;
+      }
+      return true;
+    });
+
+    if (!allEntriesValidArr.every((elm) => elm === true)) {
+      const invalidEntries = allEntriesValidArr.filter(
+        (elm) => typeof elm === "string"
+      );
+      return res.status(400).json({
+        message: "No updates performed. One or more entries were invalid.",
+        invalidEntries,
+      });
+    }
+
+    // If all names are valid, update all activities.
     const updatedActivities = await prisma.activity.updateMany({
       where: {
         name: {
@@ -86,9 +118,16 @@ activityController.patch(
       data: { isActive: activateOrDeactivate },
     });
 
+    if (updatedActivities.count === 0) {
+      return res
+        .status(400)
+        .json({ message: "No updates performed. Invalid activity names." });
+    }
+
     return res.status(200).json({
-      message: "Updated activities.",
-      characters: updatedActivities,
+      message: `Successfully ${req.params.activateOrDeactivate}d activities.`,
+      count: updatedActivities.count,
+      activities: req.body,
     });
   }
 );
