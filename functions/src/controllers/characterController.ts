@@ -24,6 +24,12 @@ const getAllCharacterNames = async () => {
     .then((chars) => chars.map((char) => char.name));
 };
 
+const verifyNameIsUnique = async (newName: string) => {
+  const allCharacterNames = await getAllCharacterNames();
+
+  return allCharacterNames.every((charName) => charName !== newName);
+};
+
 // Get all active characters
 characterController.get("/", async (_req, res) => {
   const allActiveCharacters = await prisma.character.findMany({
@@ -44,6 +50,31 @@ characterController.post(
   "/",
   validateRequestBody(characterArraySchema),
   async (req, res) => {
+    // Check if names are unique.
+    const namesAreUniqueArr = await Promise.all(
+      req.body.map(async (char) => {
+        const nameIsUnique = await verifyNameIsUnique(char.name);
+        if (!nameIsUnique) {
+          return char.name;
+        }
+        return true;
+      })
+    );
+
+    const namesAreUnique = namesAreUniqueArr.every((item) => item === true);
+    if (!namesAreUnique) {
+      const invalidCharacters = namesAreUniqueArr.filter(
+        (item) => item !== true
+      );
+      return res
+        .status(400)
+        .json({
+          message:
+            "No characters created. One or more entered names are already in use.",
+          invalidCharacters,
+        });
+    }
+
     const charNoIdArr = req.body.map((charInfo) => {
       const { id, ...charNoId } = charInfo;
       return charNoId;
@@ -52,9 +83,11 @@ characterController.post(
       const createdCharacters = await prisma.character.createMany({
         data: charNoIdArr,
       });
+      const characterNames = req.body.map((char) => char.name);
       return res.status(200).json({
         message: "Created characters.",
-        characters: createdCharacters,
+        count: createdCharacters.count,
+        characters: characterNames,
       });
     } catch (error) {
       return res.status(400).json({
@@ -70,6 +103,31 @@ characterController.delete(
   validateRequestBody(characterArraySchema),
   async (req, res) => {
     const names = req.body.map((character) => character.name);
+
+    // Verify that none of the characters have a history of being booked.
+    const charsAtEventIds = await prisma.charactersAtEvent
+      .findMany()
+      .then((charsAtEvent) => charsAtEvent.map((item) => item.characterId));
+
+    const charsNeverBookedArr = req.body.map((char) => {
+      if (charsAtEventIds.includes(char.id)) {
+        return char;
+      }
+      return true;
+    });
+    const charsNeverBooked = charsNeverBookedArr.every((item) => item === true);
+    if (!charsNeverBooked) {
+      const charactersWithHistory = characterArraySchema.parse(
+        charsNeverBookedArr.filter((item) => item !== true)
+      );
+      return res.status(400).json({
+        message:
+          "Unable to delete characters. One or more characters have an event history.",
+        charactersWithHistory,
+      });
+    }
+
+    // Delete the characters.
     try {
       const deletedCharacters = await prisma.character.deleteMany({
         where: {
@@ -79,9 +137,12 @@ characterController.delete(
         },
       });
 
+      const characterNames = req.body.map((char) => char.name);
+
       return res.status(200).json({
         message: "Deleted characters.",
         count: deletedCharacters.count,
+        characters: characterNames,
       });
     } catch (error) {
       return res.status(400).json({
@@ -102,12 +163,7 @@ characterController.patch(
 
     // Verify the new name is unique.
     if (req.body.name) {
-      const allCharacterNames = await getAllCharacterNames();
-
-      const nameIsUnique = allCharacterNames.every(
-        (charName) => charName !== req.body.name
-      );
-
+      const nameIsUnique = await verifyNameIsUnique(req.body.name);
       if (!nameIsUnique) {
         return res.status(400).json({
           message: `Character names must be unique. '${req.body.name}' is already used.`,
@@ -115,6 +171,7 @@ characterController.patch(
       }
     }
 
+    // Update character.
     const updatedCharacter = await prisma.character.update({
       where: {
         id: charId,

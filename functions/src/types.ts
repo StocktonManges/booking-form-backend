@@ -33,6 +33,7 @@ export const characterSchema = z.object({
   name: z.string(),
   isActive: z.boolean(),
 });
+export type Character = z.infer<typeof characterSchema>;
 
 export const characterOptionalSchema = z
   .object({
