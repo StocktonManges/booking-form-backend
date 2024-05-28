@@ -34,6 +34,22 @@ export const characterSchema = z.object({
   isActive: z.boolean(),
 });
 
+export const characterOptionalSchema = z
+  .object({
+    id: z.number(),
+    name: z.string().optional(),
+    isActive: z.boolean().optional(),
+  })
+  .refine(
+    (data) => {
+      // Ensure that at least one of the fields (name or isActive) is present
+      return data.name !== undefined || data.isActive !== undefined;
+    },
+    {
+      message: "At least one of the fields (name or isActive) must be present",
+    }
+  );
+
 export const characterArraySchema = z.array(characterSchema);
 
 export const activitySchema = z.object({

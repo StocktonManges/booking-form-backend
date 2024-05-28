@@ -6,12 +6,23 @@ import {
 import {
   characterArraySchema,
   activateOrDeactivateParamSchema,
+  characterOptionalSchema,
 } from "../types";
 import { PrismaClient } from "@prisma/client";
 import { z } from "zod";
 
 export const characterController = Router();
 const prisma = new PrismaClient();
+
+const getAllCharacterNames = async () => {
+  return await prisma.character
+    .findMany({
+      select: {
+        name: true,
+      },
+    })
+    .then((chars) => chars.map((char) => char.name));
+};
 
 // Get all active characters
 characterController.get("/", async (_req, res) => {
@@ -81,6 +92,42 @@ characterController.delete(
   }
 );
 
+// Update a single character.
+characterController.patch(
+  "/",
+  validateRequestBody(characterOptionalSchema),
+  async (req, res) => {
+    const charId = +req.body.id;
+    const { id, ...dataNoId } = req.body;
+
+    // Verify the new name is unique.
+    if (req.body.name) {
+      const allCharacterNames = await getAllCharacterNames();
+
+      const nameIsUnique = allCharacterNames.every(
+        (charName) => charName !== req.body.name
+      );
+
+      if (!nameIsUnique) {
+        return res.status(400).json({
+          message: `Character names must be unique. '${req.body.name}' is already used.`,
+        });
+      }
+    }
+
+    const updatedCharacter = await prisma.character.update({
+      where: {
+        id: charId,
+      },
+      data: dataNoId,
+    });
+
+    return res
+      .status(200)
+      .json({ message: "Updated character.", updatedCharacter });
+  }
+);
+
 // Batch activate or deactivate characters.
 characterController.patch(
   "/:activateOrDeactivate",
@@ -94,22 +141,12 @@ characterController.patch(
   validateRequestParams(activateOrDeactivateParamSchema),
   async (req, res) => {
     const activateOrDeactivate = req.params.activateOrDeactivate === "activate";
+    const nameList = req.body;
 
     // Validate the spelling of all names.
-    const allCharacterNames = await prisma.character
-      .findMany({
-        where: {
-          name: {
-            in: req.body,
-          },
-        },
-        select: {
-          name: true,
-        },
-      })
-      .then((chars) => chars.map((char) => char.name));
+    const allCharacterNames = await getAllCharacterNames();
 
-    const allEntriesValidArr = req.body.map((charName) => {
+    const allEntriesValidArr = nameList.map((charName) => {
       if (!allCharacterNames.includes(charName)) {
         return charName;
       }
@@ -130,7 +167,7 @@ characterController.patch(
     const updatedCharacters = await prisma.character.updateMany({
       where: {
         name: {
-          in: req.body,
+          in: nameList,
         },
       },
       data: { isActive: activateOrDeactivate },
@@ -145,7 +182,7 @@ characterController.patch(
     return res.status(200).json({
       message: `Successfully ${req.params.activateOrDeactivate}d characters.`,
       count: updatedCharacters.count,
-      characters: req.body,
+      characters: nameList,
     });
   }
 );
