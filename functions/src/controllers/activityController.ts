@@ -73,7 +73,7 @@ activityController.post(
       });
     }
 
-    // Create characters.
+    // Create activities.
     const activityNoIdArr = req.body.map((activityInfo) => {
       const { id, ...activityNoId } = activityInfo;
       return activityNoId;
@@ -84,7 +84,7 @@ activityController.post(
       });
       const activityNames = req.body.map((activity) => activity.name);
       return res.status(200).json({
-        message: "Created characters.",
+        message: "Created activities.",
         count: createdActivities.count,
         activities: activityNames,
       });
@@ -143,7 +143,7 @@ activityController.delete(
       const activityNames = req.body.map((activity) => activity.name);
 
       return res.status(200).json({
-        message: "Deleted characters.",
+        message: "Deleted activities.",
         count: deletedActivities.count,
         activities: activityNames,
       });
