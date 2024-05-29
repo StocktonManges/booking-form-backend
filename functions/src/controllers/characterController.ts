@@ -66,15 +66,14 @@ characterController.post(
       const invalidCharacters = namesAreUniqueArr.filter(
         (item) => item !== true
       );
-      return res
-        .status(400)
-        .json({
-          message:
-            "No characters created. One or more entered names are already in use.",
-          invalidCharacters,
-        });
+      return res.status(400).json({
+        message:
+          "No characters created. One or more entered names are already in use.",
+        invalidCharacters,
+      });
     }
 
+    // Create characters.
     const charNoIdArr = req.body.map((charInfo) => {
       const { id, ...charNoId } = charInfo;
       return charNoId;
