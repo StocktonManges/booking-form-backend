@@ -29,7 +29,7 @@ model Event {
   maxParticipantAge Int
   birthdayChildName String
   birthdayChildAge  Int
-  firstInteraction  Boolean
+  firstInteraction  String
   notes             String?
   couponCode        String?
   referralCode      String?

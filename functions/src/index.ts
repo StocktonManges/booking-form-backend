@@ -123,6 +123,11 @@ app.get("/status", async (_req, res) => {
   return res.status(200).json(allStatuses);
 });
 
+app.get("/incompatibleActivitiesAndPackages", async (_req, res) => {
+  const allData = await prisma.incompatibleActivitiesAndPackages.findMany();
+  return res.status(200).json(allData);
+});
+
 app.use(errorHandlingMiddleware);
 
 export const bookingForm = onRequest(app);
